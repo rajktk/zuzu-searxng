@@ -1,0 +1,52 @@
+# SearXNG settings for ZuZu plagiarism JSON search.
+# Docs: https://docs.searxng.org/admin/settings/settings.html
+
+use_default_settings: true
+
+general:
+  instance_name: "ZuZu SearXNG"
+  debug: false
+  enable_metrics: false
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "en"
+  formats:
+    - html
+    - json
+
+server:
+  # Overridden at runtime when SEARXNG_SECRET is set on the Space.
+  secret_key: "change-me-on-start"
+  limiter: false
+  image_proxy: false
+  # Port is controlled by GRANIAN_PORT (Dockerfile sets 7860 for HF Spaces).
+  method: "GET"
+  default_http_headers:
+    X-Content-Type-Options: nosniff
+    X-Download-Options: noopen
+    X-Robots-Tag: noindex, nofollow
+    Referrer-Policy: no-referrer
+
+ui:
+  static_use_hash: true
+
+# Keep the engine set modest for CPU-basic Spaces.
+engines:
+  - name: google
+    engine: google
+    shortcut: g
+    disabled: false
+  - name: bing
+    engine: bing
+    shortcut: b
+    disabled: false
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg
+    disabled: false
+  - name: wikipedia
+    engine: wikipedia
+    shortcut: wp
+    disabled: false

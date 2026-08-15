@@ -1,0 +1,67 @@
+# Steps to create a SearXNG Hugging Face Space for ZuZu Writer
+# ============================================================
+#
+# 0) Prereqs
+#    - Hugging Face account
+#    - `hf` CLI logged in  OR  use the website UI
+#    - ZuZu Writer Space already deployed
+#
+# 1) Create a new Docker Space
+#    Website:
+#      https://huggingface.co/new-space
+#      - Space name: e.g. zuzu-searxng
+#      - SDK: Docker
+#      - Hardware: CPU basic is fine to start
+#      - Visibility: Private recommended (public = open JSON search API)
+#
+# 2) Upload these files to the Space repo root (not a subfolder)
+#    From this directory (deploy/searxng-hf/):
+#      Dockerfile
+#      settings.yml
+#      entrypoint.sh
+#      README.md
+#
+#    Example with git:
+#      git clone https://huggingface.co/spaces/<YOU>/zuzu-searxng
+#      cd zuzu-searxng
+#      cp /path/to/ZuZu\ Writer/deploy/searxng-hf/* .
+#      git add Dockerfile settings.yml entrypoint.sh README.md
+#      git commit -m "Add SearXNG for ZuZu plagiarism"
+#      git push
+#
+#    Do NOT use `hf upload` if your plan returns 402 on Spaces — use git push.
+#
+# 3) Space variables / secrets (Settings → Variables and secrets)
+#    Secret:
+#      SEARXNG_SECRET = <long random string>
+#    Variable (after first build, use your real URL):
+#      SEARXNG_BASE_URL = https://<you>-zuzu-searxng.hf.space
+#    Optional:
+#      FORCE_HTTPS = 1
+#
+# 4) Wait for the Space to build (Building → Running)
+#    Open the Space URL and confirm the SearXNG UI loads.
+#
+# 5) Verify JSON API
+#      curl "https://<you>-zuzu-searxng.hf.space/search?q=test&format=json"
+#    Expect HTTP 200 and a JSON body with a "results" array (may be empty if engines block the IP).
+#
+# 6) Point ZuZu Writer at this Space
+#    On the ZuZu Space (idnameraj/zuzuwriter) Settings → Variables:
+#      SEARXNG_BASE_URL = https://<you>-zuzu-searxng.hf.space
+#      SEARXNG_TIMEOUT_SECONDS = 12
+#      SEARXNG_RESULTS_PER_QUERY = 5
+#    Keep Google CSE as fallback:
+#      GOOGLE_CSE_ID / GOOGLE_API_KEY
+#    Restart / rebuild ZuZu so env is picked up.
+#
+# 7) Sanity check from ZuZu
+#      GET /api/v1/plagiarism/status  → searxng_configured: true
+#      GET /health                   → searxng_configured: true
+#    Run a plagiarism check; processing.search_provider should prefer "searxng".
+#
+# Troubleshooting
+# - 7860 / app failed to start: confirm Dockerfile EXPOSE 7860 and settings server.port: 7860
+# - JSON 403/empty: engines blocking HF IPs — expected; CSE/Wikipedia still work on ZuZu
+# - 502 from ZuZu: wrong SEARXNG_BASE_URL (must be the *.hf.space origin, no /search suffix)
+# - Public abuse: make the SearXNG Space private, or add auth at a reverse proxy later

@@ -1,0 +1,7 @@
+*
+!.gitignore
+!Dockerfile
+!entrypoint.sh
+!settings.yml
+!README.md
+!STEPS.txt
